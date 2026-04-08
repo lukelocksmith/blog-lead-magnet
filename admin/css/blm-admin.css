@@ -1,0 +1,68 @@
+/* BLM Admin Styles */
+
+.blm-tab-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+}
+
+/* Status badges */
+.blm-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.blm-status--active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.blm-status--inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Delete button */
+.blm-btn-delete {
+    color: #b91c1c !important;
+    border-color: #fca5a5 !important;
+}
+
+.blm-btn-delete:hover {
+    background: #fef2f2 !important;
+    border-color: #ef4444 !important;
+}
+
+/* Color picker grid */
+.blm-colors-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.blm-colors-grid > div {
+    min-width: 200px;
+}
+
+.blm-colors-grid label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: inline-block;
+}
+
+/* Image preview */
+.blm-image-field img {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px;
+    background: #f9f9f9;
+}
+
+/* Analytics filters */
+.blm-analytics-filters .button {
+    margin-right: 5px;
+}
