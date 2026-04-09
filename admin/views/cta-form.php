@@ -84,8 +84,8 @@ $image_url = $cta->image_id ? wp_get_attachment_image_url( $cta->image_id, 'medi
                             <img src="<?php echo esc_url( $image_url ); ?>" style="max-width:300px;height:auto;">
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="button" id="blm_upload_image">Wybierz obrazek</button>
-                    <button type="button" class="button" id="blm_remove_image" <?php echo $cta->image_id ? '' : 'style="display:none"'; ?>>Usuń obrazek</button>
+                    <button type="button" class="button blm-media-upload" data-target="blm_image_id" data-preview="blm_image_preview" data-remove="blm_remove_image" data-mode="id">Wybierz z biblioteki</button>
+                    <button type="button" class="button blm-media-remove" data-target="blm_image_id" data-preview="blm_image_preview" data-mode="id" id="blm_remove_image" <?php echo $cta->image_id ? '' : 'style="display:none"'; ?>>Usuń obrazek</button>
                 </div>
             </td>
         </tr>
@@ -142,12 +142,17 @@ $image_url = $cta->image_id ? wp_get_attachment_image_url( $cta->image_id, 'medi
             <th><label for="display_condition">Gdzie wyświetlać</label></th>
             <td>
                 <select name="display_condition" id="display_condition">
-                    <option value="after_h2" <?php selected( $cta->display_condition, 'after_h2' ); ?>>Po każdym H2 + tekst (przed kolejnym nagłówkiem)</option>
+                    <option value="after_h2_1" <?php selected( $cta->display_condition, 'after_h2_1' ); ?>>Po 1. sekcji (po pierwszym H2 + tekst)</option>
+                    <option value="after_h2_2" <?php selected( $cta->display_condition, 'after_h2_2' ); ?>>Po 2. sekcji</option>
+                    <option value="after_h2_3" <?php selected( $cta->display_condition, 'after_h2_3' ); ?>>Po 3. sekcji</option>
+                    <option value="after_h2_4" <?php selected( $cta->display_condition, 'after_h2_4' ); ?>>Po 4. sekcji</option>
+                    <option value="after_h2_5" <?php selected( $cta->display_condition, 'after_h2_5' ); ?>>Po 5. sekcji</option>
                     <option value="after_30" <?php selected( $cta->display_condition, 'after_30' ); ?>>Po 30% artykułu</option>
                     <option value="after_50" <?php selected( $cta->display_condition, 'after_50' ); ?>>Po 50% artykułu</option>
                     <option value="after_70" <?php selected( $cta->display_condition, 'after_70' ); ?>>Po 70% artykułu</option>
                     <option value="end" <?php selected( $cta->display_condition, 'end' ); ?>>Na końcu artykułu</option>
                 </select>
+                <p class="description">Sekcja = nagłówek H2 + cały tekst pod nim (do kolejnego H2).</p>
             </td>
         </tr>
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blog Lead Magnet
  * Description: Flexible CTA system for blog posts with analytics and floating bar.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: important.is
  * Text Domain: blog-lead-magnet
  * Domain Path: /languages
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'BLM_VERSION', '1.0.0' );
+define( 'BLM_VERSION', '1.1.0' );
 define( 'BLM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BLM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BLM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -23,6 +23,7 @@ require_once BLM_PLUGIN_DIR . 'includes/class-blm-cta-model.php';
 require_once BLM_PLUGIN_DIR . 'includes/class-blm-analytics-model.php';
 require_once BLM_PLUGIN_DIR . 'includes/class-blm-content-injector.php';
 require_once BLM_PLUGIN_DIR . 'includes/class-blm-floating-bar.php';
+require_once BLM_PLUGIN_DIR . 'includes/class-blm-shortcodes.php';
 require_once BLM_PLUGIN_DIR . 'includes/class-blm-github-updater.php';
 
 // Admin
@@ -53,6 +54,7 @@ function blm_init() {
 
     new BLM_Content_Injector();
     new BLM_Floating_Bar();
+    new BLM_Shortcodes();
 }
 
 // AJAX handlers for analytics tracking
@@ -82,6 +84,13 @@ add_action( 'wp_enqueue_scripts', 'blm_enqueue_frontend' );
 
 function blm_enqueue_frontend() {
     if ( ! is_singular( 'post' ) ) {
+        return;
+    }
+
+    // Skip if nothing to show (no active CTAs and floating bar disabled)
+    $has_ctas = ! empty( get_transient( 'blm_active_ctas' ) ) || ! empty( BLM_CTA_Model::get_all( true ) );
+    $bar      = BLM_Floating_Bar::get();
+    if ( ! $has_ctas && empty( $bar['enabled'] ) ) {
         return;
     }
 

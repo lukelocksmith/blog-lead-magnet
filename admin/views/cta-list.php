@@ -2,11 +2,15 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 $conditions_labels = array(
-    'after_h2' => 'Po każdym H2',
-    'after_30' => 'Po 30% artykułu',
-    'after_50' => 'Po 50% artykułu',
-    'after_70' => 'Po 70% artykułu',
-    'end'      => 'Na końcu artykułu',
+    'after_h2_1' => 'Po 1. sekcji H2',
+    'after_h2_2' => 'Po 2. sekcji H2',
+    'after_h2_3' => 'Po 3. sekcji H2',
+    'after_h2_4' => 'Po 4. sekcji H2',
+    'after_h2_5' => 'Po 5. sekcji H2',
+    'after_30'   => 'Po 30% artykułu',
+    'after_50'   => 'Po 50% artykułu',
+    'after_70'   => 'Po 70% artykułu',
+    'end'        => 'Na końcu artykułu',
 );
 ?>
 

@@ -14,18 +14,20 @@ class BLM_Admin_Floating_Bar {
             wp_die( 'Unauthorized' );
         }
 
+        $modes = array( 'both', 'cta_only', 'toc_only' );
+
         $data = array(
-            'enabled'      => isset( $_POST['fb_enabled'] ) ? 1 : 0,
-            'heading'      => sanitize_text_field( $_POST['fb_heading'] ?? '' ),
-            'body'         => wp_kses_post( $_POST['fb_body'] ?? '' ),
-            'button_text'  => sanitize_text_field( $_POST['fb_button_text'] ?? '' ),
-            'button_url'   => esc_url_raw( $_POST['fb_button_url'] ?? '' ),
-            'bg_color'     => sanitize_hex_color( $_POST['fb_bg_color'] ?? '#1e293b' ),
-            'button_color' => sanitize_hex_color( $_POST['fb_button_color'] ?? '#2563eb' ),
-            'text_color'   => sanitize_hex_color( $_POST['fb_text_color'] ?? '#ffffff' ),
-            'position'     => in_array( $_POST['fb_position'] ?? '', array( 'top', 'bottom' ), true ) ? $_POST['fb_position'] : 'bottom',
-            'show_delay'   => absint( $_POST['fb_show_delay'] ?? 3 ),
-            'dismissible'  => isset( $_POST['fb_dismissible'] ) ? 1 : 0,
+            'enabled'        => isset( $_POST['fb_enabled'] ) ? 1 : 0,
+            'mode'           => in_array( $_POST['fb_mode'] ?? '', $modes, true ) ? $_POST['fb_mode'] : 'both',
+            'progress_bar'   => isset( $_POST['fb_progress_bar'] ) ? 1 : 0,
+            'btn_text'       => sanitize_text_field( $_POST['fb_btn_text'] ?? '' ),
+            'btn_url'        => esc_url_raw( $_POST['fb_btn_url'] ?? '' ),
+            'author_name'    => sanitize_text_field( $_POST['fb_author_name'] ?? '' ),
+            'author_role'    => sanitize_text_field( $_POST['fb_author_role'] ?? '' ),
+            'author_avatar'  => esc_url_raw( $_POST['fb_author_avatar'] ?? '' ),
+            'bar_bg'         => sanitize_hex_color( $_POST['fb_bar_bg'] ?? '' ) ?: '#ffffff',
+            'btn_color'      => sanitize_hex_color( $_POST['fb_btn_color'] ?? '' ) ?: '#2563eb',
+            'progress_color' => sanitize_hex_color( $_POST['fb_progress_color'] ?? '' ) ?: '#e22007',
         );
 
         update_option( 'blm_floating_bar', $data );
@@ -35,8 +37,6 @@ class BLM_Admin_Floating_Bar {
     }
 
     public function render() {
-        $config = get_option( 'blm_floating_bar', array() );
-
         if ( isset( $_GET['message'] ) && 'saved' === $_GET['message'] ) {
             echo '<div class="notice notice-success is-dismissible"><p>Ustawienia pływającego paska zostały zapisane.</p></div>';
         }

@@ -2,11 +2,15 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 $conditions_labels = array(
-    'after_h2' => 'Po każdym H2',
-    'after_30' => 'Po 30%',
-    'after_50' => 'Po 50%',
-    'after_70' => 'Po 70%',
-    'end'      => 'Na końcu',
+    'after_h2_1' => 'Po 1. sekcji',
+    'after_h2_2' => 'Po 2. sekcji',
+    'after_h2_3' => 'Po 3. sekcji',
+    'after_h2_4' => 'Po 4. sekcji',
+    'after_h2_5' => 'Po 5. sekcji',
+    'after_30'   => 'Po 30%',
+    'after_50'   => 'Po 50%',
+    'after_70'   => 'Po 70%',
+    'end'        => 'Na końcu',
 );
 
 $day_options = array( 7, 30, 90, 0 );

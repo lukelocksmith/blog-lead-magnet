@@ -61,7 +61,7 @@ class BLM_Content_Injector {
         $injections     = array();
         $claimed_offsets = array();
         $plain_text     = wp_strip_all_tags( $content );
-        $total_length   = strlen( $plain_text ); // Use byte length — consistent with byte-level offset calculation
+        $total_length   = mb_strlen( $plain_text, 'UTF-8' );
 
         // Group CTAs by condition, already sorted by priority
         $grouped = array();
@@ -69,24 +69,26 @@ class BLM_Content_Injector {
             $grouped[ $cta->display_condition ][] = $cta;
         }
 
+        // Pre-calculate H2 section offsets (shared across after_h2_N conditions)
+        $h2_offsets = $this->find_h2_offsets( $content );
+
         // Process each condition type
         foreach ( $grouped as $condition => $condition_ctas ) {
-            switch ( $condition ) {
-                case 'after_h2':
-                    $offsets = $this->find_h2_offsets( $content );
-                    // Assign CTAs round-robin to H2 positions
-                    $cta_index = 0;
-                    foreach ( $offsets as $offset ) {
-                        if ( $this->is_offset_claimed( $offset, $claimed_offsets ) ) {
-                            continue;
-                        }
-                        $cta = $condition_ctas[ $cta_index % count( $condition_ctas ) ];
-                        $injections[]    = array( 'offset' => $offset, 'cta' => $cta );
+            // after_h2_1, after_h2_2, ... after_h2_5
+            if ( preg_match( '/^after_h2_(\d+)$/', $condition, $m ) ) {
+                $section_num = (int) $m[1];
+                $index = $section_num - 1; // 0-based
+                if ( isset( $h2_offsets[ $index ] ) ) {
+                    $offset = $h2_offsets[ $index ];
+                    if ( ! $this->is_offset_claimed( $offset, $claimed_offsets ) ) {
+                        $injections[]    = array( 'offset' => $offset, 'cta' => $condition_ctas[0] );
                         $claimed_offsets[] = $offset;
-                        $cta_index++;
                     }
-                    break;
+                }
+                continue;
+            }
 
+            switch ( $condition ) {
                 case 'after_30':
                 case 'after_50':
                 case 'after_70':
@@ -133,21 +135,24 @@ class BLM_Content_Injector {
                 continue;
             }
 
-            // Insertion point: just before the next heading (or end of content)
-            if ( isset( $headings[ $i + 1 ] ) ) {
-                // Find the last </p> before the next heading
-                $search_start = $headings[ $i ][1];
-                $search_end   = $headings[ $i + 1 ][1];
-                $section      = substr( $content, $search_start, $search_end - $search_start );
+            // Insertion point: after the last </p> in this section
+            $search_start = $headings[ $i ][1];
 
-                $last_p = strrpos( $section, '</p>' );
-                if ( false !== $last_p ) {
-                    $offsets[] = $search_start + $last_p + 4; // after </p>
-                } else {
-                    $offsets[] = $search_end; // before next heading
-                }
+            if ( isset( $headings[ $i + 1 ] ) ) {
+                $search_end = $headings[ $i + 1 ][1];
+            } else {
+                // Last H2 — section extends to end of content
+                $search_end = strlen( $content );
             }
-            // Don't add for last H2 — 'end' condition handles that
+
+            $section = substr( $content, $search_start, $search_end - $search_start );
+            $last_p  = strrpos( $section, '</p>' );
+
+            if ( false !== $last_p ) {
+                $offsets[] = $search_start + $last_p + 4;
+            } else {
+                $offsets[] = $search_end;
+            }
         }
 
         return $offsets;
@@ -157,43 +162,31 @@ class BLM_Content_Injector {
      * Find the nearest </p> position at or after a percentage of the content.
      */
     private function find_percent_offset( $content, $plain_text, $total_length, $percent ) {
-        if ( $total_length < 200 ) {
-            return false; // Content too short for percentage-based injection
+        if ( $total_length < 100 ) {
+            return false;
         }
 
         $target_chars = (int) ( $total_length * $percent / 100 );
 
-        // Walk through content HTML tracking plain text char count
-        $char_count   = 0;
-        $in_tag       = false;
-        $content_len  = strlen( $content );
+        // Find all </p> positions and pick the one closest to the target percentage
+        $offset    = 0;
+        $best_pos  = false;
+        $char_seen = 0;
 
-        for ( $pos = 0; $pos < $content_len; $pos++ ) {
-            $char = $content[ $pos ];
+        while ( ( $p_pos = strpos( $content, '</p>', $offset ) ) !== false ) {
+            // Count plain text chars up to this </p> by stripping tags from content so far
+            $segment   = substr( $content, 0, $p_pos );
+            $char_seen = mb_strlen( wp_strip_all_tags( $segment ), 'UTF-8' );
 
-            if ( '<' === $char ) {
-                $in_tag = true;
-                continue;
-            }
-            if ( '>' === $char ) {
-                $in_tag = false;
-                continue;
+            if ( $char_seen >= $target_chars ) {
+                $best_pos = $p_pos + 4; // after </p>
+                break;
             }
 
-            if ( ! $in_tag ) {
-                $char_count++;
-                if ( $char_count >= $target_chars ) {
-                    // Find the nearest </p> from this position
-                    $next_p = strpos( $content, '</p>', $pos );
-                    if ( false !== $next_p ) {
-                        return $next_p + 4; // after </p>
-                    }
-                    return false;
-                }
-            }
+            $offset = $p_pos + 4;
         }
 
-        return false;
+        return $best_pos;
     }
 
     /**

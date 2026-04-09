@@ -125,119 +125,205 @@
 }
 
 /* ========================
-   Floating Bar
+   Product Card Shortcode
    ======================== */
-.blm-floating-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 99999;
+.blm-product {
     display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 16px;
-    padding: 14px 24px;
-    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.15);
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    align-items: center;
+    padding: 12px 0;
 }
 
-.blm-floating-bar--bottom {
-    bottom: 0;
-    transform: translateY(100%);
+.blm-product__image {
+    flex-shrink: 0;
+    width: 100px;
 }
 
-.blm-floating-bar--top {
-    top: 0;
-    transform: translateY(-100%);
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+.blm-product__image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
 }
 
-.blm-floating-bar--visible.blm-floating-bar--bottom {
-    transform: translateY(0);
-}
-
-.blm-floating-bar--visible.blm-floating-bar--top {
-    transform: translateY(0);
-}
-
-.blm-floating-bar__text {
+.blm-product__info {
     flex: 1;
     min-width: 0;
 }
 
-.blm-floating-bar__heading {
+.blm-product__name {
     font-weight: 700;
-    font-size: 1em;
-    margin: 0;
+    font-size: 1.05em;
+    margin-bottom: 4px;
     color: inherit;
 }
 
-.blm-floating-bar__body {
+.blm-product__desc {
     font-size: 0.9em;
-    opacity: 0.9;
-    margin: 2px 0 0 0;
+    opacity: 0.8;
+    margin-bottom: 8px;
     color: inherit;
 }
 
-.blm-floating-bar__button {
+.blm-product__bottom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.blm-product__price {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: inherit;
+}
+
+.blm-product__button {
     display: inline-block;
-    padding: 8px 20px;
+    padding: 6px 16px;
     border-radius: 6px;
+    background: #2563eb;
     color: #fff !important;
+    font-size: 0.85em;
+    font-weight: 600;
     text-decoration: none !important;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.blm-product__button:hover {
+    opacity: 0.9;
+}
+
+/* ========================
+   Related Posts Shortcode
+   ======================== */
+.blm-related {
+    padding: 4px 0;
+}
+
+.blm-related__heading {
+    font-weight: 700;
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    color: inherit;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.blm-related__list {
+    display: flex;
+    gap: 12px;
+}
+
+.blm-related__item {
+    flex: 1;
+    min-width: 0;
+    text-decoration: none !important;
+    color: inherit !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+}
+
+.blm-related__item:hover {
+    opacity: 0.85;
+}
+
+.blm-related__thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    background: rgba(0,0,0,0.08);
+}
+
+.blm-related__thumb--empty {
+    background: rgba(0,0,0,0.08);
+}
+
+.blm-related__title {
     font-weight: 600;
     font-size: 0.9em;
-    white-space: nowrap;
-    transition: opacity 0.2s ease;
-    flex-shrink: 0;
-    border: none;
-    line-height: 1.4;
-}
-
-.blm-floating-bar__button:hover,
-.blm-floating-bar__button:focus {
-    opacity: 0.9;
-    color: #fff !important;
-    text-decoration: none !important;
-}
-
-.blm-floating-bar__button:visited {
-    color: #fff !important;
-}
-
-.blm-floating-bar__dismiss {
-    background: none;
-    border: none;
+    line-height: 1.3;
     color: inherit;
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0.7;
-    padding: 4px 8px;
-    line-height: 1;
-    flex-shrink: 0;
-    transition: opacity 0.2s ease;
-}
-
-.blm-floating-bar__dismiss:hover {
-    opacity: 1;
 }
 
 @media (max-width: 600px) {
-    .blm-floating-bar {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 12px 16px;
+    .blm-related__list {
+        flex-direction: column;
     }
 
-    .blm-floating-bar__text {
-        flex-basis: calc(100% - 40px);
-    }
-
-    .blm-floating-bar__button {
-        width: 100%;
+    .blm-product {
+        flex-direction: column;
         text-align: center;
     }
+
+    .blm-product__bottom {
+        justify-content: center;
+    }
+}
+
+/* ========================
+   Reading Progress Bar
+   ======================== */
+.blm-progress { position:fixed; top:0; left:0; right:0; height:3px; z-index:9999; pointer-events:none; }
+.blm-progress__bar { height:100%; width:0; transition:width 80ms linear; }
+
+/* ========================
+   Server-side TOC (SEO — hidden, in HTML source for crawlers)
+   ======================== */
+.blm-toc-seo { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* ========================
+   Floating Bar (CTA + TOC)
+   ======================== */
+.blm-float { position:fixed; bottom:0; left:0; right:0; z-index:9000; pointer-events:none; }
+.blm-float__bar { pointer-events:auto; border-top:1px solid rgba(0,0,0,.08); box-shadow:0 -4px 20px rgba(0,0,0,.06); }
+.blm-float__inner { max-width:760px; margin:0 auto; padding:10px 24px; display:flex; align-items:center; gap:12px; }
+
+/* Expert / CTA */
+.blm-float__expert { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.blm-float__avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff; background:#374151; }
+.blm-float__avatar img { width:100%; height:100%; object-fit:cover; }
+.blm-float__info { display:flex; flex-direction:column; gap:1px; }
+.blm-float__name { font-size:13px; font-weight:600; color:#111; line-height:1.2; }
+.blm-float__role { font-size:11px; color:#6b7280; line-height:1.2; }
+.blm-float__btn { display:inline-block; color:#fff !important; text-decoration:none !important; font-size:13px; font-weight:600; padding:8px 16px; border-radius:8px; white-space:nowrap; transition:opacity .15s; flex-shrink:0; }
+.blm-float__btn:hover { opacity:.87; }
+
+/* Separator */
+.blm-float__sep { width:1px; height:28px; background:rgba(0,0,0,.1); flex-shrink:0; }
+
+/* TOC area */
+.blm-float__toc-area { flex:1; min-width:0; display:flex; flex-direction:column; position:relative; }
+.blm-float__panel { position:absolute; bottom:100%; right:0; width:100%; max-height:0; overflow:hidden; transition:max-height .3s ease, opacity .2s ease; opacity:0; background:var(--blm-bar-bg, #ffffff); border-radius:12px 12px 0 0; box-shadow:0 -4px 20px rgba(0,0,0,.08); }
+.blm-float[aria-expanded="true"] .blm-float__panel { max-height:calc(100dvh - 80px); opacity:1; }
+.blm-float__panel-inner { padding:16px 20px; max-height:calc(100dvh - 120px); overflow-y:auto; }
+.blm-float__toc-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:2px; }
+.blm-float__toc-list li { margin:0; }
+.blm-float__toc-list li.toc-sub { padding-left:16px; }
+.blm-float__toc-list a { display:block; padding:6px 10px; border-radius:6px; font-size:14px; color:#374151; text-decoration:none; transition:background .15s, color .15s; line-height:1.4; }
+.blm-float__toc-list a:hover { background:rgba(0,0,0,.04); }
+.blm-float__toc-list a.active { background:rgba(0,0,0,.06); font-weight:600; color:#111; }
+
+/* TOC toggle */
+.blm-float__toc-toggle { display:flex; align-items:center; gap:8px; width:100%; background:none; border:none; cursor:pointer; padding:6px 12px; border-radius:8px; transition:background .15s; }
+.blm-float__toc-toggle:hover { background:rgba(0,0,0,.04); }
+.blm-float__toc-text { display:flex; flex-direction:column; align-items:flex-start; width:100%; gap:1px; }
+.blm-float__toc-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:#9ca3af; }
+.blm-float__toc-active { font-size:13px; font-weight:500; color:#374151; width:100%; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.blm-float__chevron { width:16px; height:16px; color:#9ca3af; transition:transform .2s; flex-shrink:0; }
+.blm-float[aria-expanded="true"] .blm-float__chevron { transform:rotate(180deg); }
+
+@media (max-width: 767px) {
+    .blm-float__info { display:none; }
+    .blm-float__sep { margin:0 4px; height:24px; }
+    .blm-float__inner { padding:8px 16px; }
+    .blm-float__panel { width:100%; }
 }

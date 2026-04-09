@@ -82,37 +82,90 @@
         });
     }
 
-    // Floating bar
+    // Reading progress bar
+    function initProgressBar() {
+        var progressBar = document.getElementById('blm-progress-bar');
+        if (!progressBar) return;
+
+        function updateProgress() {
+            var scrollTop = window.scrollY;
+            var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            var pct = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0;
+            progressBar.style.width = pct + '%';
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+    }
+
+    // Floating bar with TOC
     function initFloatingBar() {
-        var bar = document.querySelector('.blm-floating-bar');
+        var bar = document.getElementById('blm-float');
         if (!bar) return;
 
-        var delay = parseInt(bar.getAttribute('data-delay') || '3', 10) * 1000;
-        var dismissKey = 'blm_fb_dismissed_' + new Date().toISOString().slice(0, 10);
+        var tocList   = document.getElementById('blm-toc-list');
+        var tocActive = document.getElementById('blm-toc-active');
 
-        // Check if dismissed today
-        if (sessionStorage.getItem(dismissKey)) {
-            bar.remove();
-            return;
+        // Read TOC from server-side nav
+        var seoNav = document.querySelector('.blm-toc-seo');
+        var seoItems = seoNav ? seoNav.querySelectorAll('li') : [];
+
+        if (tocList) {
+            if (seoItems.length < 2) {
+                var tocArea = bar.querySelector('.blm-float__toc-area');
+                var sep = bar.querySelector('.blm-float__sep');
+                if (tocArea) tocArea.style.display = 'none';
+                if (sep) sep.style.display = 'none';
+            } else {
+                seoItems.forEach(function (item) {
+                    var srcLink = item.querySelector('a');
+                    if (!srcLink) return;
+
+                    var li = document.createElement('li');
+                    if (item.className) li.className = item.className;
+
+                    var a = document.createElement('a');
+                    a.href = srcLink.getAttribute('href');
+                    a.textContent = srcLink.textContent;
+                    li.appendChild(a);
+                    tocList.appendChild(li);
+                });
+
+                // Active heading via IntersectionObserver
+                var links = tocList.querySelectorAll('a');
+
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        var id = entry.target.id;
+
+                        links.forEach(function (a) {
+                            a.classList.remove('active');
+                            if (a.getAttribute('href') === '#' + id) a.classList.add('active');
+                        });
+
+                        if (tocActive) {
+                            tocActive.textContent = entry.target.textContent.trim();
+                        }
+                    });
+                }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+
+                links.forEach(function (a) {
+                    var id = a.getAttribute('href').replace('#', '');
+                    var heading = document.getElementById(id);
+                    if (heading) observer.observe(heading);
+                });
+
+                // Close panel after TOC click
+                links.forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        bar.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
         }
 
-        // Show after delay
-        setTimeout(function() {
-            bar.classList.add('blm-floating-bar--visible');
-        }, delay);
-
-        // Dismiss button
-        var dismissBtn = bar.querySelector('.blm-floating-bar__dismiss');
-        if (dismissBtn) {
-            dismissBtn.addEventListener('click', function() {
-                bar.classList.remove('blm-floating-bar--visible');
-                sessionStorage.setItem(dismissKey, '1');
-                setTimeout(function() { bar.remove(); }, 500);
-            });
-        }
-
-        // Track floating bar clicks
-        var fbButton = bar.querySelector('.blm-floating-bar__button');
+        // Track floating bar CTA clicks
+        var fbButton = bar.querySelector('.blm-float__btn');
         if (fbButton) {
             fbButton.addEventListener('click', function() {
                 trackEvent('floating-bar', 'click');
@@ -130,7 +183,16 @@
     function init() {
         initImpressionTracking();
         initClickTracking();
+        initProgressBar();
         initFloatingBar();
     }
 
 })();
+
+// Toggle function (global, called from onclick in floating bar)
+function toggleBlmFloat() {
+    var bar = document.getElementById('blm-float');
+    if (!bar) return;
+    var isOpen = bar.getAttribute('aria-expanded') === 'true';
+    bar.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+}
