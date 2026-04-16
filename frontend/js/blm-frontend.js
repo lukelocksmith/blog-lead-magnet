@@ -173,6 +173,43 @@
         }
     }
 
+    // Content Gate — global localStorage unlock
+    function initGate() {
+        var gateEl = document.querySelector('.blm-gate');
+        if (!gateEl) return;
+
+        var gatedContent = document.querySelector('.blm-gated-content');
+        if (!gatedContent) return;
+
+        // Already unlocked on a previous visit
+        if (localStorage.getItem('blm_unlocked') === '1') {
+            unlockGate();
+            return;
+        }
+
+        // Watch for Fluent Forms success message inside the gate
+        var observer = new MutationObserver(function() {
+            if (gateEl.querySelector('.ff-message-success, .ff_form_success')) {
+                observer.disconnect();
+                localStorage.setItem('blm_unlocked', '1');
+                unlockGate();
+            }
+        });
+        observer.observe(gateEl, { childList: true, subtree: true });
+    }
+
+    function unlockGate() {
+        var gateEl = document.querySelector('.blm-gate');
+        var gatedContent = document.querySelector('.blm-gated-content');
+
+        if (gatedContent) {
+            gatedContent.style.display = '';
+        }
+        if (gateEl) {
+            gateEl.style.display = 'none';
+        }
+    }
+
     // Init on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -181,6 +218,7 @@
     }
 
     function init() {
+        initGate();
         initImpressionTracking();
         initClickTracking();
         initProgressBar();

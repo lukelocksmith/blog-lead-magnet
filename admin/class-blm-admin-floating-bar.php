@@ -8,11 +8,12 @@ class BLM_Admin_Floating_Bar {
             return;
         }
 
-        check_admin_referer( 'blm_floating_bar_save', 'blm_fb_nonce' );
-
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_die( 'Unauthorized' );
         }
+        check_admin_referer( 'blm_floating_bar_save', 'blm_fb_nonce' );
+
+        $modes = array( 'both', 'cta_only', 'toc_only' );
 
         $modes = array( 'both', 'cta_only', 'toc_only' );
 

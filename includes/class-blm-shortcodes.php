@@ -75,23 +75,43 @@ class BLM_Shortcodes {
                 'posts_per_page' => count( $post_ids ),
             ) );
         } else {
-            // Get related posts from same category
-            $categories = get_the_category();
-            $cat_ids    = $categories ? wp_list_pluck( $categories, 'term_id' ) : array();
+            // Get related posts from same category.
+            // Use transient cache keyed by post ID — avoids ORDER BY RAND() on every page load.
+            $post_id    = get_the_ID();
+            $cache_key  = 'blm_related_' . $post_id;
+            $posts      = get_transient( $cache_key );
 
-            $args = array(
-                'post_type'      => 'post',
-                'post_status'    => 'publish',
-                'posts_per_page' => absint( $atts['count'] ),
-                'post__not_in'   => array( get_the_ID() ),
-                'orderby'        => 'rand',
-            );
+            if ( false === $posts ) {
+                $categories = get_the_category( $post_id );
+                $cat_ids    = $categories ? wp_list_pluck( $categories, 'term_id' ) : array();
 
-            if ( $cat_ids ) {
-                $args['category__in'] = $cat_ids;
+                $args = array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => absint( $atts['count'] ) + 5, // fetch a few extra for variety
+                    'post__not_in'   => array( $post_id ),
+                    'orderby'        => 'date',
+                    'order'          => 'DESC',
+                );
+
+                if ( $cat_ids ) {
+                    $args['category__in'] = $cat_ids;
+                }
+
+                $all_posts = get_posts( $args );
+
+                // Deterministic shuffle seeded by post ID for per-post variety without rand()
+                if ( count( $all_posts ) > absint( $atts['count'] ) ) {
+                    srand( $post_id );
+                    shuffle( $all_posts );
+                    srand(); // reset to system seed
+                    $posts = array_slice( $all_posts, 0, absint( $atts['count'] ) );
+                } else {
+                    $posts = $all_posts;
+                }
+
+                set_transient( $cache_key, $posts, 6 * HOUR_IN_SECONDS );
             }
-
-            $posts = get_posts( $args );
         }
 
         if ( empty( $posts ) ) {

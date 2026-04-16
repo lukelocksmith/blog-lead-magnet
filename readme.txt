@@ -4,7 +4,7 @@ Tags: cta, lead magnet, blog, analytics, floating bar
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 
 Flexible CTA system for blog posts with analytics and floating bar.

@@ -90,6 +90,7 @@ class BLM_CTA_Model {
     private static function sanitize_data( $data ) {
         $clean = array();
         $fields = array(
+            'type'              => 'sanitize_text_field',
             'heading'           => 'sanitize_text_field',
             'body'              => 'wp_kses_post',
             'image_id'          => 'absint',
@@ -101,8 +102,10 @@ class BLM_CTA_Model {
             'text_color'        => 'sanitize_hex_color',
             'text_size'         => 'absint',
             'is_active'         => 'absint',
+            'is_bare'           => 'absint',
             'priority'          => 'intval',
             'display_condition' => 'sanitize_text_field',
+            'category_filter'   => 'sanitize_text_field',
         );
 
         foreach ( $fields as $key => $sanitizer ) {

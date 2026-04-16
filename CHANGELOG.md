@@ -2,6 +2,33 @@
 
 All notable changes to Blog Lead Magnet will be documented in this file.
 
+## [1.1.1] - 2026-04-16
+
+### Added
+- Per-post CTA overrides — full accordion in post meta box (heading, body, shortcode, button, colors, position per CTA)
+- Analytics per-post breakdown — expandable rows in analytics dashboard showing impressions/clicks by post
+- Live CTA preview in admin form (updates on input change)
+- Mode-conditional field visibility in floating bar settings (Autor/Przycisk hidden in toc_only mode)
+- WP Cron daily cleanup for analytics table
+- Rate limiting (30 req/IP/min) on tracking AJAX endpoint
+
+### Changed
+- "+ Dodaj CTA" button moved to page header row (opposite plugin title)
+- Floating bar settings page redesigned to match admin design system
+- Post meta box CTA cards wrapped in container with visual separation (gray background, gap between cards)
+- `orderby=rand` replaced with deterministic shuffle + transient cache (fixes N random DB scans)
+
+### Fixed
+- Capability check order: `current_user_can()` now runs before nonce check in all form handlers
+- `maybe_upgrade()` no longer runs `SHOW COLUMNS` on every request (gated behind version option)
+- `blm_init()` early-returns for AJAX/Cron/REST before `is_admin()` check (admin classes were loading on every AJAX request)
+- N+1 query in analytics AJAX: `_prime_post_caches()` before post loop
+- N+1 query in CTA list: `get_terms()` batch instead of N× `get_term_by()`
+- O(n²) → O(n) content processing in `find_percent_offset()`
+- Enum whitelist validation for `type` and `display_condition` fields
+- `wp_enqueue_media()` no longer loads on non-post CPTs
+- PHP parse error: `foreach` value destructuring syntax incompatible with some PHP versions
+
 ## [1.1.0] - 2026-04-09
 
 ### Changed

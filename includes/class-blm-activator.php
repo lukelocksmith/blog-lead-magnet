@@ -5,6 +5,7 @@ class BLM_Activator {
 
     public static function activate() {
         self::create_tables();
+        self::maybe_upgrade();
         self::set_defaults();
     }
 
@@ -14,6 +15,7 @@ class BLM_Activator {
 
         $sql_ctas = "CREATE TABLE {$wpdb->prefix}blm_ctas (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            type VARCHAR(10) NOT NULL DEFAULT 'cta',
             heading VARCHAR(255) NOT NULL DEFAULT '',
             body LONGTEXT NOT NULL,
             image_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -25,8 +27,10 @@ class BLM_Activator {
             text_color VARCHAR(7) NOT NULL DEFAULT '#1e293b',
             text_size SMALLINT UNSIGNED NOT NULL DEFAULT 16,
             is_active TINYINT(1) NOT NULL DEFAULT 1,
+            is_bare TINYINT(1) NOT NULL DEFAULT 0,
             priority INT NOT NULL DEFAULT 10,
             display_condition VARCHAR(50) NOT NULL DEFAULT 'end',
+            category_filter VARCHAR(500) NOT NULL DEFAULT '',
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -55,21 +59,35 @@ class BLM_Activator {
         update_option( 'blm_db_version', BLM_VERSION, false );
     }
 
+    /**
+     * Add new columns to existing tables when upgrading.
+     * dbDelta only creates tables, it doesn't add missing columns.
+     */
+    public static function maybe_upgrade() {
+        // Gate behind a version option — avoids SHOW COLUMNS on every request.
+        // Only runs when the stored DB version doesn't match the current plugin version.
+        if ( get_option( 'blm_db_version' ) === BLM_VERSION ) {
+            return;
+        }
+
+        global $wpdb;
+        $table   = $wpdb->prefix . 'blm_ctas';
+        $columns = $wpdb->get_col( "SHOW COLUMNS FROM $table", 0 );
+
+        if ( ! in_array( 'type', $columns, true ) ) {
+            $wpdb->query( "ALTER TABLE $table ADD COLUMN type VARCHAR(10) NOT NULL DEFAULT 'cta' AFTER id" );
+        }
+
+        if ( ! in_array( 'category_filter', $columns, true ) ) {
+            $wpdb->query( "ALTER TABLE $table ADD COLUMN category_filter VARCHAR(500) NOT NULL DEFAULT '' AFTER display_condition" );
+        }
+
+        update_option( 'blm_db_version', BLM_VERSION );
+    }
+
     private static function set_defaults() {
         if ( false === get_option( 'blm_floating_bar' ) ) {
-            update_option( 'blm_floating_bar', array(
-                'enabled'      => 0,
-                'heading'      => '',
-                'body'         => '',
-                'button_text'  => '',
-                'button_url'   => '',
-                'bg_color'     => '#1e293b',
-                'button_color' => '#2563eb',
-                'text_color'   => '#ffffff',
-                'position'     => 'bottom',
-                'show_delay'   => 3,
-                'dismissible'  => 1,
-            ) );
+            update_option( 'blm_floating_bar', BLM_Floating_Bar::defaults(), false );
         }
     }
 }

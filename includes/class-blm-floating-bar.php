@@ -24,8 +24,13 @@ class BLM_Floating_Bar {
         );
     }
 
+    private static $config_cache = null;
+
     public static function get() {
-        return array_merge( self::defaults(), get_option( 'blm_floating_bar', array() ) );
+        if ( null === self::$config_cache ) {
+            self::$config_cache = array_merge( self::defaults(), get_option( 'blm_floating_bar', array() ) );
+        }
+        return self::$config_cache;
     }
 
     /**
