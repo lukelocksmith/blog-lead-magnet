@@ -6,13 +6,25 @@ class BLM_Admin_CTA {
     public function handle_actions() {
         // Handle save
         if ( isset( $_POST['blm_cta_save'] ) ) {
-            check_admin_referer( 'blm_cta_save', 'blm_cta_nonce' );
-
             if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( 'Unauthorized' );
             }
+            check_admin_referer( 'blm_cta_save', 'blm_cta_nonce' );
+
+            // category_filter: array of slugs from checkboxes → comma-separated string
+            $cat_slugs = isset( $_POST['category_filter'] ) && is_array( $_POST['category_filter'] )
+                ? implode( ',', array_map( 'sanitize_text_field', $_POST['category_filter'] ) )
+                : '';
+
+            $allowed_types      = array( 'cta', 'gate' );
+            $allowed_conditions = array( 'end', 'after_30', 'after_50', 'after_70',
+                'after_h2_1', 'after_h2_2', 'after_h2_3', 'after_h2_4', 'after_h2_5' );
+
+            $raw_type      = sanitize_text_field( $_POST['type'] ?? '' );
+            $raw_condition = sanitize_text_field( $_POST['display_condition'] ?? '' );
 
             $data = array(
+                'type'              => in_array( $raw_type, $allowed_types, true ) ? $raw_type : 'cta',
                 'heading'           => $_POST['heading'] ?? '',
                 'body'              => $_POST['body'] ?? '',
                 'image_id'          => $_POST['image_id'] ?? 0,
@@ -24,8 +36,10 @@ class BLM_Admin_CTA {
                 'text_color'        => $_POST['text_color'] ?? '#1e293b',
                 'text_size'         => $_POST['text_size'] ?? 16,
                 'is_active'         => isset( $_POST['is_active'] ) ? 1 : 0,
+                'is_bare'           => isset( $_POST['is_bare'] ) ? 1 : 0,
                 'priority'          => $_POST['priority'] ?? 10,
-                'display_condition' => $_POST['display_condition'] ?? 'end',
+                'display_condition' => in_array( $raw_condition, $allowed_conditions, true ) ? $raw_condition : 'end',
+                'category_filter'   => $cat_slugs,
             );
 
             $id = isset( $_POST['cta_id'] ) ? absint( $_POST['cta_id'] ) : 0;
@@ -44,11 +58,10 @@ class BLM_Admin_CTA {
 
         // Handle delete
         if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['cta_id'] ) ) {
-            check_admin_referer( 'blm_delete_cta_' . $_GET['cta_id'] );
-
             if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( 'Unauthorized' );
             }
+            check_admin_referer( 'blm_delete_cta_' . $_GET['cta_id'] );
 
             BLM_CTA_Model::delete( absint( $_GET['cta_id'] ) );
 
@@ -58,11 +71,10 @@ class BLM_Admin_CTA {
 
         // Handle toggle
         if ( isset( $_GET['action'] ) && 'toggle' === $_GET['action'] && isset( $_GET['cta_id'] ) ) {
-            check_admin_referer( 'blm_toggle_cta_' . $_GET['cta_id'] );
-
             if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( 'Unauthorized' );
             }
+            check_admin_referer( 'blm_toggle_cta_' . $_GET['cta_id'] );
 
             BLM_CTA_Model::toggle_active( absint( $_GET['cta_id'] ) );
 

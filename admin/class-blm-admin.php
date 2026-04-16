@@ -48,7 +48,15 @@ class BLM_Admin {
     }
 
     public function render_page() {
-        $tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'cta';
+        $tab    = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'cta';
+        $action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
+
+        // Slot for a right-aligned action button in the page header row.
+        // Only show "+ Dodaj CTA" on the CTA list view (not add/edit form).
+        $blm_header_action = '';
+        if ( 'cta' === $tab && '' === $action ) {
+            $blm_header_action = '<a href="' . esc_url( admin_url( 'admin.php?page=blog-lead-magnet&tab=cta&action=add' ) ) . '" class="blm-btn blm-btn-primary">+ Dodaj CTA</a>';
+        }
 
         include BLM_PLUGIN_DIR . 'admin/views/tabs-header.php';
 
@@ -90,5 +98,11 @@ class BLM_Admin {
             BLM_VERSION,
             true
         );
+
+        wp_localize_script( 'blm-admin', 'blm_admin', array(
+            'ajax_url' => admin_url( 'admin-ajax.php' ),
+            'nonce'    => wp_create_nonce( 'blm_admin_ajax' ),
+            'days'     => isset( $_GET['days'] ) ? absint( $_GET['days'] ) : 30,
+        ) );
     }
 }

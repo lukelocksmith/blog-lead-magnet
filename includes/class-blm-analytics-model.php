@@ -45,6 +45,7 @@ class BLM_Analytics_Model {
         return $wpdb->get_results( "
             SELECT
                 c.id,
+                c.type,
                 c.heading,
                 c.display_condition,
                 c.is_active,
@@ -79,6 +80,31 @@ class BLM_Analytics_Model {
             FROM $table
             WHERE cta_id = %d
         ", $cta_id ) );
+    }
+
+    public static function get_post_stats_for_cta( $cta_id, $days = 30 ) {
+        global $wpdb;
+        $table = self::table();
+
+        if ( $days > 0 ) {
+            $date_cond = $wpdb->prepare( "AND created_at >= DATE_SUB(NOW(), INTERVAL %d DAY)", $days );
+        } else {
+            $date_cond = '';
+        }
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $date_cond is already prepared above
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT
+                post_id,
+                COALESCE(SUM(CASE WHEN event_type = 'impression' THEN 1 ELSE 0 END), 0) AS impressions,
+                COALESCE(SUM(CASE WHEN event_type = 'click'      THEN 1 ELSE 0 END), 0) AS clicks
+            FROM " . self::table() . "
+            WHERE cta_id = %d $date_cond
+            GROUP BY post_id
+            ORDER BY impressions DESC
+            LIMIT 20",
+            absint( $cta_id )
+        ) );
     }
 
     public static function cleanup_old( $days = 90 ) {
