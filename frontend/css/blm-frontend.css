@@ -380,11 +380,6 @@
 .blm-progress__bar { height:100%; width:0; transition:width 80ms linear; }
 
 /* ========================
-   Server-side TOC (SEO — hidden, in HTML source for crawlers)
-   ======================== */
-.blm-toc-seo { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-
-/* ========================
    Floating Bar (CTA + TOC)
    ======================== */
 .blm-float { position:fixed; bottom:0; left:0; right:0; z-index:9000; pointer-events:none; }

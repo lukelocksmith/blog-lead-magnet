@@ -2,6 +2,14 @@
 
 All notable changes to Blog Lead Magnet will be documented in this file.
 
+## [1.1.2] - 2026-09-30
+
+### Removed
+- Hidden server-side TOC (`.blm-toc-seo`, schema.org `SiteNavigationElement`). It was invisible to users, included H3 unlike the visible TOC, and gave crawlers conflicting navigation data.
+
+### Changed
+- Floating bar TOC is now built from the same headings as the visible Bricks post TOC (`data-content-selector` / `data-heading-selectors` of `.brxe-post-toc`, fallback `.blog-content h2`). Empty headings are skipped.
+
 ## [1.1.1] - 2026-04-16
 
 ### Added

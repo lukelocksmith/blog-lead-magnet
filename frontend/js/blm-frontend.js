@@ -105,27 +105,35 @@
         var tocList   = document.getElementById('blm-toc-list');
         var tocActive = document.getElementById('blm-toc-active');
 
-        // Read TOC from server-side nav
-        var seoNav = document.querySelector('.blm-toc-seo');
-        var seoItems = seoNav ? seoNav.querySelectorAll('li') : [];
+        // Build TOC from the same headings as the visible Bricks post TOC
+        // (its data-content-selector / data-heading-selectors), so both match.
+        var bricksToc = document.querySelector('.brxe-post-toc');
+        var contentSel = (bricksToc && bricksToc.getAttribute('data-content-selector')) || '.blog-content';
+        var headingSel = (bricksToc && bricksToc.getAttribute('data-heading-selectors')) || 'h2';
+        var contentRoot = document.querySelector(contentSel);
+        var headings = [];
+        if (contentRoot) {
+            Array.prototype.forEach.call(contentRoot.querySelectorAll(headingSel), function (h, n) {
+                if (!h.textContent.trim()) return;
+                if (!h.id) h.id = 'blm-h-' + n;
+                headings.push(h);
+            });
+        }
 
         if (tocList) {
-            if (seoItems.length < 2) {
+            if (headings.length < 2) {
                 var tocArea = bar.querySelector('.blm-float__toc-area');
                 var sep = bar.querySelector('.blm-float__sep');
                 if (tocArea) tocArea.style.display = 'none';
                 if (sep) sep.style.display = 'none';
             } else {
-                seoItems.forEach(function (item) {
-                    var srcLink = item.querySelector('a');
-                    if (!srcLink) return;
-
+                headings.forEach(function (h) {
                     var li = document.createElement('li');
-                    if (item.className) li.className = item.className;
+                    if (h.tagName === 'H3') li.className = 'toc-sub';
 
                     var a = document.createElement('a');
-                    a.href = srcLink.getAttribute('href');
-                    a.textContent = srcLink.textContent;
+                    a.href = '#' + h.id;
+                    a.textContent = h.textContent.trim();
                     li.appendChild(a);
                     tocList.appendChild(li);
                 });

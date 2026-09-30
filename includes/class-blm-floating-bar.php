@@ -60,44 +60,25 @@ class BLM_Floating_Bar {
             return $content;
         }
 
-        $i         = 0;
-        $toc_items = array();
+        $i = 0;
 
-        $content = preg_replace_callback( '/<(h[23])([^>]*)>(.*?)<\/\1>/is', function ( $m ) use ( &$i, &$toc_items ) {
+        $content = preg_replace_callback( '/<(h[23])([^>]*)>(.*?)<\/\1>/is', function ( $m ) use ( &$i ) {
             $tag   = $m[1];
             $attrs = $m[2];
-            $text  = strip_tags( $m[3] );
             $id    = 'h-' . $i;
 
             if ( ! preg_match( '/\bid\s*=/i', $attrs ) ) {
                 $attrs .= ' id="' . $id . '"';
-            } else {
-                preg_match( '/\bid\s*=\s*["\']([^"\']+)/i', $attrs, $id_match );
-                if ( $id_match ) {
-                    $id = $id_match[1];
-                }
             }
-
-            $toc_items[] = array(
-                'id'    => $id,
-                'text'  => $text,
-                'level' => $tag === 'h3' ? 3 : 2,
-            );
 
             $i++;
             return "<{$tag}{$attrs}>{$m[3]}</{$tag}>";
         }, $content );
 
-        // Hidden nav for Google/AI crawlers (schema.org SiteNavigationElement)
-        $toc_html = '<nav class="blm-toc-seo" aria-label="Spis treści" itemscope itemtype="https://schema.org/SiteNavigationElement">';
-        $toc_html .= '<ol>';
-        foreach ( $toc_items as $item ) {
-            $sub = $item['level'] === 3 ? ' class="toc-sub"' : '';
-            $toc_html .= '<li' . $sub . '><a href="#' . esc_attr( $item['id'] ) . '" itemprop="url"><span itemprop="name">' . esc_html( $item['text'] ) . '</span></a></li>';
-        }
-        $toc_html .= '</ol></nav>';
-
-        return $toc_html . $content;
+        // Headings only get stable ids (anchor targets for the floating bar TOC).
+        // No hidden nav: the TOC is built client-side from the same headings
+        // as the visible Bricks post TOC, so users and crawlers get one TOC.
+        return $content;
     }
 
     /**
