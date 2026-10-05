@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blog Lead Magnet
  * Description: Flexible CTA system for blog posts with analytics and floating bar.
- * Version: 1.1.2
+ * Version: 1.1.3
  * Author: important.is
  * Text Domain: blog-lead-magnet
  * Domain Path: /languages
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'BLM_VERSION', '1.1.2' );
+define( 'BLM_VERSION', '1.1.3' );
 define( 'BLM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BLM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BLM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

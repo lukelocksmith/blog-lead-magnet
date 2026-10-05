@@ -6,6 +6,128 @@ class BLM_Floating_Bar {
     public function __construct() {
         add_action( 'wp_footer', array( $this, 'render' ), 5 );
         add_filter( 'the_content', array( $this, 'inject_toc' ), 5 );
+        add_action( 'template_redirect', array( $this, 'start_toc_schema_buffer' ), 20 );
+    }
+
+    /**
+     * Structured data for the table of contents (schema.org SiteNavigationElement, JSON-LD).
+     *
+     * There is ONE table of contents: the visible Bricks post TOC (.brxe-post-toc). The schema is
+     * derived from exactly that element's configuration (data-content-selector / data-heading-selectors),
+     * read from the final page HTML, so the markup shown to users and the data given to crawlers
+     * always match (including headings rendered by Bricks modules, e.g. FAQ, which are not in post_content).
+     */
+    public function start_toc_schema_buffer() {
+        if ( ! is_singular( 'post' ) || is_admin() || is_feed() || is_preview() ) {
+            return;
+        }
+
+        $permalink = get_permalink( get_queried_object_id() );
+        if ( ! $permalink ) {
+            return;
+        }
+
+        ob_start( function ( $html ) use ( $permalink ) {
+            return BLM_Floating_Bar::append_toc_schema( $html, $permalink );
+        } );
+    }
+
+    /**
+     * Turn a simple CSS selector (tag, .class, #id) into an XPath expression.
+     * Returns null for anything more complex, so callers can fall back to a default.
+     */
+    private static function simple_selector_to_xpath( $selector ) {
+        $selector = trim( $selector );
+        if ( preg_match( '/^[a-z][a-z0-9]*$/i', $selector ) ) {
+            return strtolower( $selector );
+        }
+        if ( preg_match( '/^\.([\w-]+)$/', $selector, $m ) ) {
+            return "*[contains(concat(' ', normalize-space(@class), ' '), ' " . $m[1] . " ')]";
+        }
+        if ( preg_match( '/^#([\w-]+)$/', $selector, $m ) ) {
+            return "*[@id='" . $m[1] . "']";
+        }
+        return null;
+    }
+
+    /**
+     * Build the JSON-LD <script> for the TOC from the final page HTML and insert it before </body>.
+     * Returns the HTML unchanged when there is no visible TOC or fewer than 2 entries.
+     */
+    public static function append_toc_schema( $html, $permalink ) {
+        if ( ! is_string( $html ) || strpos( $html, 'brxe-post-toc' ) === false || ! class_exists( 'DOMDocument' ) ) {
+            return $html;
+        }
+
+        $prev = libxml_use_internal_errors( true );
+        $dom  = new DOMDocument();
+        $ok   = $dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET | LIBXML_COMPACT );
+        libxml_clear_errors();
+        libxml_use_internal_errors( $prev );
+        if ( ! $ok ) {
+            return $html;
+        }
+
+        $xp  = new DOMXPath( $dom );
+        $toc = $xp->query( "//*[contains(concat(' ', normalize-space(@class), ' '), ' brxe-post-toc ')]" )->item( 0 );
+        if ( ! $toc ) {
+            return $html;
+        }
+
+        $content_xp = self::simple_selector_to_xpath( $toc->getAttribute( 'data-content-selector' ) );
+        $content_xp = $content_xp ? $content_xp : self::simple_selector_to_xpath( '.blog-content' );
+
+        $tags = array();
+        foreach ( explode( ',', $toc->getAttribute( 'data-heading-selectors' ) ) as $sel ) {
+            $t = self::simple_selector_to_xpath( $sel );
+            if ( $t && preg_match( '/^h[1-6]$/', $t ) ) {
+                $tags[] = $t;
+            }
+        }
+        $tags = $tags ? $tags : array( 'h2' );
+
+        $root = $xp->query( '//' . $content_xp )->item( 0 );
+        if ( ! $root ) {
+            return $html;
+        }
+
+        $conds    = array();
+        foreach ( $tags as $t ) {
+            $conds[] = 'self::' . $t;
+        }
+        $items = array();
+        foreach ( $xp->query( './/*[' . implode( ' or ', $conds ) . ']', $root ) as $h ) {
+            $id   = $h->getAttribute( 'id' );
+            $text = trim( preg_replace( '/[\s\x{00A0}]+/u', ' ', $h->textContent ) );
+            if ( $id === '' || $text === '' ) {
+                continue;
+            }
+            $items[] = array(
+                '@type' => 'SiteNavigationElement',
+                'name'  => $text,
+                'url'   => $permalink . '#' . $id,
+            );
+        }
+
+        if ( count( $items ) < 2 ) {
+            return $html;
+        }
+
+        $schema = array(
+            '@context' => 'https://schema.org',
+            '@type'    => 'SiteNavigationElement',
+            '@id'      => $permalink . '#toc',
+            'name'     => 'Spis treści',
+            'isPartOf' => array( '@id' => $permalink . '#webpage' ),
+            'hasPart'  => $items,
+        );
+
+        $script = "\n<script type=\"application/ld+json\" class=\"blm-toc-schema\">\n"
+            . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG )
+            . "\n</script>\n";
+
+        $pos = strripos( $html, '</body>' );
+        return $pos === false ? $html . $script : substr( $html, 0, $pos ) . $script . substr( $html, $pos );
     }
 
     public static function defaults() {
@@ -67,7 +189,8 @@ class BLM_Floating_Bar {
             $attrs = $m[2];
             $id    = 'h-' . $i;
 
-            if ( ! preg_match( '/\bid\s*=/i', $attrs ) ) {
+            // Real id attribute only: \bid also matched data-section-id (ChatGPT paste leftovers) and skipped assigning an anchor.
+            if ( ! preg_match( '/(?<![\w-])id\s*=/i', $attrs ) ) {
                 $attrs .= ' id="' . $id . '"';
             }
 

@@ -2,6 +2,14 @@
 
 All notable changes to Blog Lead Magnet will be documented in this file.
 
+## [1.1.3] - 2026-10-05
+
+### Added
+- Structured data for the table of contents restored as a single JSON-LD `SiteNavigationElement` (name + url per entry, `hasPart`), linked to the page via `isPartOf` (`#webpage` node of the SEO plugin). It is generated from the final page HTML using the same configuration as the visible Bricks post TOC (`data-content-selector` / `data-heading-selectors` of `.brxe-post-toc`), so the schema always matches the TOC shown to users (including headings from Bricks modules such as FAQ). Skipped when the page has no visible TOC or fewer than 2 entries.
+
+### Fixed
+- Headings carrying `data-section-id` (leftover of pasting from ChatGPT) did not get an anchor id because the "has id" check matched `data-section-id` as `id`. They now get `h-N` like every other heading, so the TOC links and the schema URLs resolve in the static HTML.
+
 ## [1.1.2] - 2026-09-30
 
 ### Removed
